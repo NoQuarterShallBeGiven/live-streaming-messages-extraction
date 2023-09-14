@@ -1,13 +1,40 @@
-let source = "";
-let targetEM = "";
-let cashEM = "";
-let authorEM = "";
-let textEM = "";
+let source = "", targetEM = "", cashEM = "", authorEM = "", textEM = "";
 let body = document.body;
 let menu = document.createElement("div");
 let connectionStatus = document.createElement("p")
 let scriptStatus = document.createElement("p")
 let extractor = (s, t, c, a, x) => {
+    let handleMutations = (mutationsList, observer) => {
+        mutationsList.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach((addedNode) => {
+                    let cash = "";
+                    try {
+                        cash = addedNode.querySelector(c).textContent.trim();
+                    }
+                    catch (e) {
+                        //console.log("Failed to get cash amount", e);
+                    }
+                    let user = "";
+                    try {
+                        user = addedNode.querySelector(a).textContent.trim();
+                    }
+                    catch (e) {
+                        //console.log("Failed to get target username", e);
+                    }
+                    let text = "";
+                    try {
+                        text = addedNode.querySelector(x).textContent.trim();
+                    }
+                    catch (e) {
+                        //console.log("Failed to get target comment", e);
+                    }
+                    // TODO : add source
+                    socket.send(JSON.stringify({Source: s, User: user, Comment: text, Amount: cash}))
+                });
+            }
+        });
+    }
     const observer = new MutationObserver(handleMutations);
     let socket = new WebSocket("ws://localhost:8839/ws");
     socket.onopen = () => {
@@ -44,37 +71,6 @@ let extractor = (s, t, c, a, x) => {
         scriptStatus.innerText = "Stopped"
         console.log('socket closed try again');
         console.log(e);
-    }
-    function handleMutations(mutationsList, observer) {
-        mutationsList.forEach((mutation) => {
-            if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach((addedNode) => {
-                    let cash = "";
-                    try {
-                        cash = addedNode.querySelector(c).textContent.trim();
-                    }
-                    catch (e) {
-                        //console.log("Failed to get cash amount", e);
-                    }
-                    let user = "";
-                    try {
-                        user = addedNode.querySelector(a).textContent.trim();
-                    }
-                    catch (e) {
-                        //console.log("Failed to get target username", e);
-                    }
-                    let text = "";
-                    try {
-                        text = addedNode.querySelector(x).textContent.trim();
-                    }
-                    catch (e) {
-                        //console.log("Failed to get target comment", e);
-                    }
-                    // TODO : add source
-                    socket.send(JSON.stringify({Source: s, User: user, Comment: text, Amount: cash}))
-                });
-            }
-        });
     }
 
 }
