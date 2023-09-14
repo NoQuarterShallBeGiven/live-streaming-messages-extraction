@@ -1,28 +1,35 @@
 let source = "", targetEM = "", cashEM = "", authorEM = "", textEM = "";
+const services = ["odysee", "rumble", "gtv"]
 let body = document.body;
 let menu = document.createElement("div");
+menu.style.border = "solid red 1px";
+menu.style.backgroundColor = "black";
+menu.style.position = "absolute";
+menu.style.top = "0";
+menu.style.left = "0";
+menu.style.zIndex = "2147483646";
+body.appendChild(menu);
 let connectionStatus = document.createElement("p")
 let scriptStatus = document.createElement("p")
 let extractor = (s, t, c, a, x) => {
+    let socket = new WebSocket("ws://localhost:8839/ws");
     let handleMutations = (mutationsList, observer) => {
         mutationsList.forEach((mutation) => {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach((addedNode) => {
-                    let cash = "";
+                    let cash = "", user = "", text = "";
                     try {
                         cash = addedNode.querySelector(c).textContent.trim();
                     }
                     catch (e) {
                         //console.log("Failed to get cash amount", e);
                     }
-                    let user = "";
                     try {
                         user = addedNode.querySelector(a).textContent.trim();
                     }
                     catch (e) {
                         //console.log("Failed to get target username", e);
                     }
-                    let text = "";
                     try {
                         text = addedNode.querySelector(x).textContent.trim();
                     }
@@ -36,7 +43,6 @@ let extractor = (s, t, c, a, x) => {
         });
     }
     const observer = new MutationObserver(handleMutations);
-    let socket = new WebSocket("ws://localhost:8839/ws");
     socket.onopen = () => {
         console.log("Websocket Status: Connected");
         connectionStatus.innerText = "Connected";
@@ -72,7 +78,6 @@ let extractor = (s, t, c, a, x) => {
         console.log('socket closed try again');
         console.log(e);
     }
-
 }
 let addEm = () => {
     let insertBreak = (em) => {
@@ -113,16 +118,13 @@ let addEm = () => {
     menu.appendChild(connectionStatus);
     menu.appendChild(scriptStatus);
     let select = document.createElement("select");
-    addOpt(select, "odysee");
-    addOpt(select, "rumble");
-    addOpt(select, "gtv");
+    select.style.border = "solid red 1px";
+    select.style.backgroundColor = "black";
+    select.style.color = "red";
+    services.forEach((value)=>{
+        addOpt(select, value);    
+    })
     menu.appendChild(select);
-    menu.style.border = "solid red 1px";
-    menu.style.backgroundColor = "black";
-    menu.style.position = "absolute";
-    menu.style.top = "0";
-    menu.style.left = "0";
-    menu.style.zIndex = "2147483646";
     const button = document.createElement('button');
     button.textContent = 'start extractor';
     button.addEventListener('click', () => {
@@ -134,37 +136,20 @@ let addEm = () => {
     button.style.border = "solid red 1px";
     insertBreak(menu);
     menu.appendChild(button);
-    body.appendChild(menu);
     dragElement(menu);
     let start = (service) => {
         console.log("loading", select.value);
         switch (select.value) {
             case "odysee":
-                source = "odysee";
-                targetEM = '.livestream__comments';
-                cashEM = ".credit-amount p";
-                authorEM = ".comment__author";
-                textEM = ".livestream-comment__text p";
-                console.log("loaded", select.value);
+                extractor("odysee", ".livestream__comments", ".credit-amount p", ".comment__author", ".livestream-comment__text p")
                 break;
             case "rumble":
-                source = "rumble";
-                targetEM = '.chat-history ul';
-                cashEM = ".credit-amount p";
-                authorEM = ".chat-history--username a";
-                textEM = ".chat-history--message";
-                console.log("loaded", select.value);
+                extractor("rumble", ".chat-history ul", ".credit-amount p",".chat-history--username a", ".chat-history--message")
                 break;
             case "gtv":
-                source = "gtv";
-                targetEM = '#room-messages';
-                cashEM = "TODO";
-                authorEM = ".message-username span";
-                textEM = ".message-text span";
-                console.log("loaded", select.value);
+                extractor("gtv", "#room-messages", "TODO", ".message-username span", ".message-text span")
                 break;
         }
-        extractor(source, targetEM, cashEM, authorEM, textEM)
     };
     let close = () => {
         // TODO
