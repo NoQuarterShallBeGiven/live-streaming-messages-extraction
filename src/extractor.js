@@ -1,4 +1,3 @@
-let source = "", targetEM = "", cashEM = "", authorEM = "", textEM = "";
 const services = ["odysee", "rumble", "gtv"]
 let body = document.body;
 let menu = document.createElement("div");
@@ -122,7 +121,7 @@ let addEm = () => {
     select.style.backgroundColor = "black";
     select.style.color = "red";
     services.forEach((value)=>{
-        addOpt(select, value);    
+        addOpt(select, value);
     })
     menu.appendChild(select);
     const button = document.createElement('button');
